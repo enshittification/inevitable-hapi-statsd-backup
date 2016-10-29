@@ -47,8 +47,11 @@ beforeEach(function(done) {
 	server.route({ method: 'GET', path: '/override', handler: get, config: {cors: true} });
 	server.route({ method: 'GET', path: '/rename', handler: get, config: {cors: true} });
 	server.route({ method: 'GET', path: '/match/id', handler: get, config: {id: 'match-my-id', cors: true} });
-	server.route({ method: 'POST', path: '/match/method', handler: get, config: { cors: true} });
-	server.route({ method: 'GET', path: '/match/status', handler: err407, config: { cors: true} });
+	server.route({ method: 'POST', path: '/match/method', handler: get, config: {cors: true} });
+	server.route({ method: 'GET', path: '/match/status', handler: err407, config: {cors: true} });
+	server.route({ method: 'GET', path: '/route-config', handler: get, config: {cors: true,
+		app: {'hapi-statsd': [{name: 'configured_name', enableCounter: true, enableTimer: true}]}}
+	});
 
 	server.register({
 		register: plugin,
@@ -182,6 +185,15 @@ describe('hapi-statsd plugin tests', function() {
 	it('should not change the status code of a response', function(done) {
 		server.inject('/err', function(res) {
 			assert(res.statusCode === 500);
+			done();
+		});
+	});
+
+	it('should honor per-route configuration ', function(done) {
+		server.inject('/route-config', function(res) {
+			assert(mockStatsdClient.incStat == 'configured_name');
+			assert(mockStatsdClient.timingStat == 'configured_name');
+			assert(mockStatsdClient.timingDate instanceof Date);
 			done();
 		});
 	});
