@@ -17,7 +17,8 @@
 		"node-dependencies": "0.x.x",
 		"hapi": "^13.0.0",
 		"coveralls": "2.x.x",
-		"mocha-lcov-reporter": "0.x.x"
+		"mocha-lcov-reporter": "0.x.x",
+		"mocha-text-cov": "0.x.x"
 	},
 	"peerDependencies": {
 		"hapi": "^13.0.0"
@@ -42,7 +43,16 @@
 		"url": "git@github.com:mac-/hapi-statsd.git"
 	},
 	"scripts": {
-		"test": "make test && make test-cov && make test-lcov | ./node_modules/coveralls/bin/coveralls.js"
+		"clean": "rm -rf node_modules",
+		"jshint": "./node_modules/.bin/jshint lib/* --config test/jshint/config.json",
+		"test": "npm run jshint && npm run test-run && npm run test-cov && npm run test-lcov | ./node_modules/coveralls/bin/coveralls.js",
+		"test-run": "NODE_ENV=test ./node_modules/.bin/mocha --recursive --reporter spec --timeout 3000 test/integration",
+		"test-cov": "NODE_ENV=test ./node_modules/.bin/mocha --require blanket --recursive --timeout 3000 -R travis-cov test/integration",
+		"test-lcov": "NODE_ENV=test ./node_modules/.bin/mocha --require blanket --recursive --timeout 3000 -R mocha-lcov-reporter test/integration",
+		"cov-report": "NODE_ENV=test ./node_modules/.bin/mocha --require blanket --recursive --timeout 3000 -R mocha-text-cov test/integration",
+		"test-cov-html": "@NODE_ENV=test ./node_modules/.bin/mocha --require blanket --recursive --timeout 3000 -R html-cov test/integration > test/coverage.html && npm run open-html",
+		"open-html": "xdg-open \"file://${CURDIR}/test/coverage.html\" &",
+		"check-deps": "./node_modules/.bin/node-dependencies"
 	},
 	"config": {
 		"blanket": {
